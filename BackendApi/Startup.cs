@@ -1,3 +1,4 @@
+using BackendApi.Controllers;
 using BackendApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -74,7 +75,7 @@ namespace BackendApi
 
                 };
             });
-
+            services.AddSingleton<IServiceMessage,ServiceMessageSender>();
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";

@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +18,15 @@ namespace BackendApi.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly StoreDBContext context;
+        private readonly IServiceMessage messageSender;
 
-        public OrdersController(StoreDBContext storeDBContext)
+        //private QueueClient queueClient;
+
+
+        public OrdersController(StoreDBContext storeDBContext, IServiceMessage messageSender)
         {
             this.context = storeDBContext;
+            this.messageSender = messageSender;
         }
 
         [HttpGet]
@@ -75,6 +82,9 @@ namespace BackendApi.Controllers
             {
                 var result = await context.Orders.AddAsync(newOrder);
                 await context.SaveChangesAsync();
+                var message = new MessageOrderStatus { Id = newOrder.OrderId, Status = newOrder.OrderStatus };
+                var messageString = JsonConvert.SerializeObject(message);
+                messageSender.SendMessageAsync(messageString);
                 return Ok(result);
             }
             catch (Exception e)
@@ -83,16 +93,16 @@ namespace BackendApi.Controllers
             }
         }
 
-        [HttpPut, Route("/{id}")]
-        public async Task<IActionResult> UpdateOrderStatus([FromHeader] int id, [FromBody] OrderStatus orderStatus)
+        [HttpPut]
+        public async Task<IActionResult> UpdateOrderStatus([FromBody] MessageOrderStatus orderStatus)
         {
-            var order = context.Orders.FirstOrDefault(o => o.OrderId == id);
+            var order = context.Orders.FirstOrDefault(o => o.OrderId == orderStatus.Id);
             if (order == null)
                 return NotFound();
-            order.OrderStatus = orderStatus;
+            order.OrderStatus = orderStatus.Status;
             context.Entry(order).State = EntityState.Modified;
             await context.SaveChangesAsync();
-            return Ok();
+            return Ok($"Updated to: {orderStatus.Status}");
         }
 
 

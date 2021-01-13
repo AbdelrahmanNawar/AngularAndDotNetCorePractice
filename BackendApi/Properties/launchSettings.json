@@ -1,7 +1,11 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/BackendApi",
+      "sslPort": 0
+    },
     "iisExpress": {
       "applicationUrl": "http://localhost:64127",
       "sslPort": 0
@@ -18,10 +22,11 @@
     "BackendApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "nativeDebugging": true,
+      "applicationUrl": "http://localhost:5000"
     }
   }
 }
